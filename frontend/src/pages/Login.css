@@ -113,3 +113,15 @@
   color: var(--muted);
   text-align: center;
 }
+
+@media (max-width: 360px) {
+  .login-inner {
+    width: calc(100vw - 32px);
+  }
+
+  .login-top-border,
+  .login-bottom-border {
+    width: calc(100vw - 32px);
+    overflow: hidden;
+  }
+}
