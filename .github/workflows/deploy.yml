@@ -40,3 +40,10 @@ jobs:
       - name: Run backend tests
         working-directory: backend
         run: gradle test --no-daemon
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: karate-test-report
+          path: backend/build/reports/

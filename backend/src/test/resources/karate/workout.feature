@@ -3,10 +3,10 @@ Feature: Workout API
   Background:
     * url baseUrl
     * def login = callonce read('classpath:karate/login.feature')
-    * header Authorization = 'Bearer ' + login.token
+    * configure headers = { Authorization: 'Bearer ' + login.token }
 
   Scenario: Unauthenticated request returns 403
-    * header Authorization = null
+    * configure headers = null
     Given path '/workouts'
     When method GET
     Then status 403
