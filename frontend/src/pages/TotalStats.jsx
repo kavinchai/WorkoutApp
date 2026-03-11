@@ -410,6 +410,7 @@ function WeightLineChart({ dates, weights }) {
 
   // For many data points, only show every Nth x-axis tick
   const tickInterval = data.length > 20 ? Math.floor(data.length / 10) : 0;
+  const isMobile = window.innerWidth <= 640;
 
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -418,17 +419,18 @@ function WeightLineChart({ dates, weights }) {
         <XAxis
           dataKey="label"
           interval={tickInterval}
-          tick={{ fontFamily: 'var(--font)', fontSize: 11, fill: 'var(--muted)' }}
+          tick={isMobile ? false : { fontFamily: 'var(--font)', fontSize: 11, fill: 'var(--muted)' }}
           axisLine={{ stroke: 'var(--border-dim)' }}
           tickLine={false}
         />
         <YAxis
           domain={[minVal - pad, maxVal + pad]}
-          tickFormatter={v => parseFloat(v).toFixed(2) + ' lbs'}
+          tickFormatter={v => parseFloat(v).toFixed(2)}
           tick={{ fontFamily: 'var(--font)', fontSize: 11, fill: 'var(--muted)' }}
           axisLine={false}
           tickLine={false}
-          width={64}
+          width={48}
+          label={{ value: 'lbs', position: 'insideTopLeft', offset: 4, style: { fontFamily: 'var(--font)', fontSize: 11, fill: 'var(--muted)' } }}
         />
         <Tooltip content={<WeightTooltip />} />
         <Line
