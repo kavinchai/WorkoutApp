@@ -22,6 +22,9 @@ class KarateRunner {
         var results = Karate.run("classpath:karate")
                 .systemProperty("server.port", String.valueOf(port))
                 .parallel(1);
+        if (results.getFailCount() > 0) {
+            System.err.println("=== KARATE FAILURES ===\n" + results.getErrorMessages());
+        }
         assertEquals(0, results.getFailCount(), results.getErrorMessages());
     }
 }
