@@ -416,6 +416,7 @@ function WeightLineChart({ days, weights }) {
   const minVal = Math.min(...valid);
   const maxVal = Math.max(...valid);
   const pad    = (maxVal - minVal) * 0.15 || 2;
+  const isMobile = window.innerWidth <= 640;
 
   return (
     <ResponsiveContainer width="100%" height={200}>
@@ -423,17 +424,18 @@ function WeightLineChart({ days, weights }) {
         <CartesianGrid strokeDasharray="2 4" stroke="var(--border-dim)" vertical={false} />
         <XAxis
           dataKey="label"
-          tick={{ fontFamily: 'var(--font)', fontSize: 11, fill: 'var(--muted)' }}
+          tick={isMobile ? false : { fontFamily: 'var(--font)', fontSize: 11, fill: 'var(--muted)' }}
           axisLine={{ stroke: 'var(--border-dim)' }}
           tickLine={false}
         />
         <YAxis
           domain={[minVal - pad, maxVal + pad]}
-          tickFormatter={v => parseFloat(v).toFixed(2) + ' lbs'}
+          tickFormatter={v => parseFloat(v).toFixed(2)}
           tick={{ fontFamily: 'var(--font)', fontSize: 11, fill: 'var(--muted)' }}
           axisLine={false}
           tickLine={false}
-          width={64}
+          width={48}
+          label={{ value: 'lbs', position: 'insideTopLeft', offset: 4, style: { fontFamily: 'var(--font)', fontSize: 11, fill: 'var(--muted)' } }}
         />
         <Tooltip content={<WeightTooltip />} />
         <Line
