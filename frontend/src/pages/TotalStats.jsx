@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import * as XLSX from 'xlsx';
 import api from '../api';
@@ -453,6 +453,9 @@ export default function TotalStats() {
   const { data: workoutData,   refetch: refetchWo } = useWorkouts();
 
   const [expandedDay, setExpandedDay] = useState(null);
+  const [importStatus, setImportStatus] = useState(null); // null | { ok, message }
+  const [importing, setImporting]       = useState(false);
+  const fileInputRef = useRef(null);
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -551,6 +554,32 @@ export default function TotalStats() {
     URL.revokeObjectURL(url);
   }
 
+  async function handleImportJson(e) {
+    const file = e.target.files?.[0];
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = '';
+    if (!file) return;
+
+    setImporting(true);
+    setImportStatus(null);
+    try {
+      const text = await file.text();
+      const payload = JSON.parse(text);
+      const res = await api.post('/import', payload);
+      const { weightImported, weightSkipped, workoutsImported, workoutsSkipped } = res.data;
+      setImportStatus({
+        ok: true,
+        message: `imported: ${weightImported} weight, ${workoutsImported} workouts  |  skipped: ${weightSkipped} weight, ${workoutsSkipped} workouts`,
+      });
+      refetchW();
+      refetchWo();
+    } catch {
+      setImportStatus({ ok: false, message: 'import failed — check file format' });
+    } finally {
+      setImporting(false);
+    }
+  }
+
   return (
     <div className="total-page">
       <div className="weekly-header">
@@ -645,13 +674,22 @@ export default function TotalStats() {
             </div>
           )}
         </div>
-        {rows.length > 0 && (
-          <div className="export-bar">
-            <span className="muted" style={{ fontSize: 'var(--fs-sm)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>export</span>
-            <div className="export-bar-btns">
+        <div className="export-bar">
+          <span className="muted" style={{ fontSize: 'var(--fs-sm)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>export</span>
+          <div className="export-bar-btns">
+            {rows.length > 0 && <>
               <button className="btn btn-sm" onClick={handleExportXlsx}>[xlsx]</button>
               <button className="btn btn-sm" onClick={handleExportJson}>[json]</button>
-            </div>
+            </>}
+            <button className="btn btn-sm" disabled={importing} onClick={() => fileInputRef.current?.click()}>
+              {importing ? '[importing...]' : '[import json]'}
+            </button>
+            <input ref={fileInputRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportJson} />
+          </div>
+        </div>
+        {importStatus && (
+          <div className="muted" style={{ fontSize: 'var(--fs-sm)', marginTop: 6, color: importStatus.ok ? 'var(--fg)' : 'var(--muted)' }}>
+            {importStatus.message}
           </div>
         )}
       </div>
