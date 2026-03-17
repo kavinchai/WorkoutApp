@@ -22,7 +22,13 @@ const CHART_COLORS = [
 
 
 function LiftChart({ data, color }) {
-  const chartData = data.map(d => ({ date: formatDate(d.sessionDate), weight: d.maxWeightLbs }));
+  // One point per date using the highest weight that day
+  const byDate = {};
+  data.forEach(d => {
+    const date = formatDate(d.sessionDate);
+    if (!byDate[date] || d.maxWeightLbs > byDate[date].weight) byDate[date] = { date, weight: d.maxWeightLbs };
+  });
+  const chartData = Object.values(byDate);
   const vals   = chartData.map(d => d.weight);
   const minVal = Math.min(...vals);
   const maxVal = Math.max(...vals);
@@ -80,9 +86,16 @@ export default function Strength() {
       <div className="strength-sets-card">
         <div className="strength-sets-title">Per-Lift Progression Detail</div>
         {progressData.map((exercise, i) => {
-          const first    = exercise.data[0];
-          const last     = exercise.data[exercise.data.length - 1];
-          const delta    = last && first ? (last.maxWeightLbs - first.maxWeightLbs) : 0;
+          // Delta: max weight on last date vs max weight on first date
+          const maxByDate = {};
+          exercise.data.forEach(d => {
+            if (!maxByDate[d.sessionDate] || d.maxWeightLbs > maxByDate[d.sessionDate])
+              maxByDate[d.sessionDate] = d.maxWeightLbs;
+          });
+          const sortedDates = Object.keys(maxByDate).sort();
+          const delta = sortedDates.length >= 2
+            ? (maxByDate[sortedDates[sortedDates.length - 1]] - maxByDate[sortedDates[0]])
+            : 0;
           const color    = CHART_COLORS[i % CHART_COLORS.length];
           const expanded = expandedLift === exercise.exerciseName;
 
@@ -116,7 +129,7 @@ export default function Strength() {
                   </thead>
                   <tbody>
                     {[...exercise.data].sort((a, b) => b.maxWeightLbs - a.maxWeightLbs).map((session) => (
-                      <tr key={session.sessionDate}>
+                      <tr key={`${session.sessionDate}-${session.maxWeightLbs}`}>
                         <td>{session.sessionDate}</td>
                         <td>
                           <span style={{ color: 'var(--color-primary-light)', fontWeight: 600 }}>

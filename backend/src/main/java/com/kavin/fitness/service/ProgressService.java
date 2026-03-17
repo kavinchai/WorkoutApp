@@ -44,7 +44,7 @@ public class ProgressService {
                     exerciseSetRepository.findByUserIdAndExerciseNameOrderByDate(userId, name);
             if (sets.isEmpty()) continue;
 
-            // Group by session date
+            // Group by session date, then by weight descending
             Map<LocalDate, List<ExerciseSet>> byDate = sets.stream()
                     .collect(Collectors.groupingBy(
                             s -> s.getSession().getSessionDate(),
@@ -52,20 +52,24 @@ public class ProgressService {
                             Collectors.toList()));
 
             List<StrengthProgressDTO.SessionData> sessionDataList = byDate.entrySet().stream()
-                    .map(entry -> {
-                        List<ExerciseSet> sessionSets = entry.getValue();
-                        BigDecimal maxWeight = sessionSets.stream()
-                                .map(ExerciseSet::getWeightLbs)
-                                .max(Comparator.naturalOrder())
-                                .orElse(BigDecimal.ZERO);
-                        String repScheme = sessionSets.stream()
-                                .map(s -> String.valueOf(s.getReps()))
-                                .collect(Collectors.joining("/"));
-                        return new StrengthProgressDTO.SessionData(
-                                entry.getKey(),
-                                maxWeight,
-                                sessionSets.size(),
-                                repScheme);
+                    .flatMap(entry -> {
+                        LocalDate date = entry.getKey();
+                        Map<BigDecimal, List<ExerciseSet>> byWeight = entry.getValue().stream()
+                                .collect(Collectors.groupingBy(ExerciseSet::getWeightLbs));
+                        return byWeight.entrySet().stream()
+                                .sorted(Map.Entry.<BigDecimal, List<ExerciseSet>>comparingByKey().reversed())
+                                .map(weightEntry -> {
+                                    BigDecimal weight = weightEntry.getKey();
+                                    List<ExerciseSet> weightSets = weightEntry.getValue();
+                                    String repScheme = weightSets.stream()
+                                            .map(s -> String.valueOf(s.getReps()))
+                                            .collect(Collectors.joining("/"));
+                                    return new StrengthProgressDTO.SessionData(
+                                            date,
+                                            weight,
+                                            weightSets.size(),
+                                            repScheme);
+                                });
                     })
                     .collect(Collectors.toList());
 
