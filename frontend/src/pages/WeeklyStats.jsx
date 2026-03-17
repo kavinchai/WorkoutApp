@@ -41,13 +41,13 @@ function avg(nums) {
 function groupByExercise(exerciseSets) {
   const map = {};
   for (const s of (exerciseSets ?? [])) {
-    if (!map[s.exerciseName]) map[s.exerciseName] = [];
-    map[s.exerciseName].push(s);
+    const key = `${s.exerciseName}__${s.weightLbs}`;
+    if (!map[key]) map[key] = { name: s.exerciseName, weight: parseFloat(s.weightLbs), sets: [] };
+    map[key].sets.push(s);
   }
-  return Object.entries(map).map(([name, sets]) => ({
-    name,
-    sets: sets.sort((a, b) => a.setNumber - b.setNumber),
-  }));
+  return Object.values(map)
+    .sort((a, b) => a.name.localeCompare(b.name) || b.weight - a.weight)
+    .map(g => ({ ...g, sets: g.sets.sort((a, b) => a.setNumber - b.setNumber) }));
 }
 
 // ── Weight modal ──────────────────────────────────────────────────────────────
@@ -331,11 +331,11 @@ function DayDetail({ date, weightEntry, nutritionEntry, workoutEntry, onRefetchW
           exerciseGroups.length > 0 ? (
             <div className="day-exercise-list">
               {exerciseGroups.map(g => (
-                <div key={g.name} className="day-exercise-item">
+                <div key={`${g.name}-${g.weight}`} className="day-exercise-item">
                   <div className="day-exercise-row">
                     <span className="day-exercise-name">{g.name}</span>
-                    {g.sets[0]?.weightLbs != null && (
-                      <span className="muted">{parseFloat(g.sets[0].weightLbs)} lbs</span>
+                    {g.weight != null && (
+                      <span className="muted">{g.weight} lbs</span>
                     )}
                     <button className="btn btn-sm" style={{ marginLeft: 'auto' }}
                       onClick={() => setEditExercise({ sessionId: workoutEntry.id, name: g.name, sets: g.sets })}>
@@ -477,7 +477,7 @@ export default function WeeklyStats() {
       weight:   w  ? parseFloat(w.weightLbs)       : null,
       calories: n  ? (n.totalCalories ?? null)      : null,
       protein:  n  ? (n.totalProtein  ?? null)      : null,
-      workout:  wo ? (wo.exerciseSets?.length > 0 ? groupByExercise(wo.exerciseSets).length + ' exercises' : 'logged') : null,
+      workout:  wo ? (wo.exerciseSets?.length > 0 ? new Set(wo.exerciseSets.map(s => s.exerciseName)).size + ' exercises' : 'logged') : null,
     };
   });
 
