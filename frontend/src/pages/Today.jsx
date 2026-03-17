@@ -217,20 +217,23 @@ function MealCard({ meal, index, onEdit }) {
 function groupByExercise(exerciseSets) {
   const map = {};
   for (const s of exerciseSets) {
-    if (!map[s.exerciseName]) map[s.exerciseName] = [];
-    map[s.exerciseName].push(s);
+    const key = `${s.exerciseName}__${s.weightLbs}`;
+    if (!map[key]) map[key] = { name: s.exerciseName, weight: parseFloat(s.weightLbs), sets: [] };
+    map[key].sets.push(s);
   }
-  return Object.entries(map).map(([name, sets]) => ({
-    name,
-    sets: sets.sort((a, b) => a.setNumber - b.setNumber),
-  }));
+  return Object.values(map)
+    .sort((a, b) => a.name.localeCompare(b.name) || b.weight - a.weight)
+    .map(g => ({ ...g, sets: g.sets.sort((a, b) => a.setNumber - b.setNumber) }));
 }
 
-function ExerciseCard({ name, sets, onEdit }) {
+function ExerciseCard({ name, weight, sets, onEdit }) {
   return (
     <div className="exercise-card">
       <div className="exercise-card-header">
-        <span className="exercise-card-name">{name}</span>
+        <span className="exercise-card-name">
+          {name}
+          <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: 8, fontSize: 'var(--font-size-sm)' }}>{weight} lbs</span>
+        </span>
         <button className="btn btn-sm" onClick={onEdit}>[edit]</button>
       </div>
       <div className="exercise-card-sets">
@@ -348,8 +351,9 @@ export default function Today() {
               <div className="exercise-cards">
                 {exerciseGroups.map(g => (
                   <ExerciseCard
-                    key={g.name}
+                    key={`${g.name}-${g.weight}`}
                     name={g.name}
+                    weight={g.weight}
                     sets={g.sets}
                     onEdit={() => setEditExercise({ sessionId: todayWo.id, name: g.name, sets: g.sets })}
                   />

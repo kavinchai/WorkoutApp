@@ -86,26 +86,29 @@ public class ImportService {
                 session.setSessionDate(date);
                 session = workoutSessionRepository.save(session);
 
+                Map<String, Integer> setOffsets = new HashMap<>();
                 for (Map<String, Object> row : entry.getValue()) {
                     String exerciseName = getString(row, "Exercise");
                     Object wObj = row.get("Weight");
                     if (exerciseName == null || wObj == null || wObj.toString().isBlank()) continue;
 
                     BigDecimal weightLbs = new BigDecimal(wObj.toString());
-                    int setNumber = 1;
-                    while (row.containsKey("Set " + setNumber)) {
-                        Object repsObj = row.get("Set " + setNumber);
+                    int offset = setOffsets.getOrDefault(exerciseName, 0);
+                    int localSet = 1;
+                    while (row.containsKey("Set " + localSet)) {
+                        Object repsObj = row.get("Set " + localSet);
                         if (repsObj != null && !repsObj.toString().isBlank()) {
                             ExerciseSet es = new ExerciseSet();
                             es.setSession(session);
                             es.setExerciseName(exerciseName);
-                            es.setSetNumber(setNumber);
+                            es.setSetNumber(offset + localSet);
                             es.setReps(Integer.parseInt(repsObj.toString()));
                             es.setWeightLbs(weightLbs);
                             session.getExerciseSets().add(es);
                         }
-                        setNumber++;
+                        localSet++;
                     }
+                    setOffsets.put(exerciseName, offset + localSet - 1);
                 }
 
                 workoutSessionRepository.save(session);
