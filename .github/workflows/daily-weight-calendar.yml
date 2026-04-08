@@ -3,7 +3,12 @@ name: Daily Weight to Google Calendar
 on:
   schedule:
     - cron: '0 5 * * *'  # 5am UTC = midnight US Eastern (EST); 1am during EDT
-  workflow_dispatch:      # allows manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: 'Backfill all historical weight data'
+        type: boolean
+        default: false
 
 jobs:
   post-weight:
@@ -23,6 +28,7 @@ jobs:
           RAILWAY_DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GOOGLE_CALENDAR_ID: ${{ secrets.KAVIN_WEIGHT_GOOGLE_CALENDAR_ID }}
+          BACKFILL: ${{ inputs.backfill || 'false' }}
         run: |
           python - <<'EOF'
           import os
@@ -33,9 +39,10 @@ jobs:
           from google.oauth2 import service_account
           from googleapiclient.discovery import build
 
+          backfill = os.environ['BACKFILL'].lower() == 'true'
           yesterday = date.today() - timedelta(days=1)
 
-          # Query Railway Postgres for yesterday's weight
+          # Query Railway Postgres
           url = urlparse(os.environ['RAILWAY_DATABASE_URL'])
           conn = psycopg2.connect(
               host=url.hostname,
@@ -46,23 +53,31 @@ jobs:
               sslmode='require'
           )
           cur = conn.cursor()
-          cur.execute("""
-              SELECT wl.weight_lbs
-              FROM weight_log wl
-              JOIN users u ON u.id = wl.user_id
-              WHERE u.username = '***REDACTED_USER***'
-                AND wl.log_date = %s
-          """, (yesterday,))
-          row = cur.fetchone()
+
+          if backfill:
+              cur.execute("""
+                  SELECT wl.log_date, wl.weight_lbs
+                  FROM weight_log wl
+                  JOIN users u ON u.id = wl.user_id
+                  WHERE u.username = '***REDACTED_USER***'
+                  ORDER BY wl.log_date
+              """)
+          else:
+              cur.execute("""
+                  SELECT wl.log_date, wl.weight_lbs
+                  FROM weight_log wl
+                  JOIN users u ON u.id = wl.user_id
+                  WHERE u.username = '***REDACTED_USER***'
+                    AND wl.log_date = %s
+              """, (yesterday,))
+
+          rows = cur.fetchall()
           cur.close()
           conn.close()
 
-          if row is None:
-              print(f"No weight entry found for ***REDACTED_USER*** on {yesterday}, skipping.")
+          if not rows:
+              print("No weight entries found, skipping.")
               exit(0)
-
-          weight = float(row[0])
-          print(f"Found weight: {weight} lbs on {yesterday}")
 
           # Authenticate with Google Calendar
           sa_info = json.loads(os.environ['GOOGLE_SERVICE_ACCOUNT_JSON'])
@@ -71,17 +86,35 @@ jobs:
               scopes=['https://www.googleapis.com/auth/calendar']
           )
           service = build('calendar', 'v3', credentials=creds)
+          calendar_id = os.environ['GOOGLE_CALENDAR_ID']
 
-          # Create all-day event
-          event = {
-              'summary': f'Weight: {weight} lbs',
-              'start': {'date': str(yesterday)},
-              'end':   {'date': str(yesterday)},
-          }
+          def event_exists(log_date):
+              day_str = str(log_date)
+              result = service.events().list(
+                  calendarId=calendar_id,
+                  timeMin=f'{day_str}T00:00:00Z',
+                  timeMax=f'{day_str}T23:59:59Z',
+                  singleEvents=True,
+                  q='Weight:'
+              ).execute()
+              return any(
+                  e.get('summary', '').startswith('Weight:')
+                  for e in result.get('items', [])
+              )
 
-          created = service.events().insert(
-              calendarId=os.environ['GOOGLE_CALENDAR_ID'],
-              body=event
-          ).execute()
-          print(f"Event created: {created.get('htmlLink')}")
+          for log_date, weight_lbs in rows:
+              if event_exists(log_date):
+                  print(f"Event already exists for {log_date}, skipping.")
+                  continue
+              weight = float(weight_lbs)
+              event = {
+                  'summary': f'Weight: {weight} lbs',
+                  'start': {'date': str(log_date)},
+                  'end':   {'date': str(log_date)},
+              }
+              created = service.events().insert(
+                  calendarId=calendar_id,
+                  body=event
+              ).execute()
+              print(f"Event created: Weight: {weight} lbs on {log_date} → {created.get('htmlLink')}")
           EOF
