@@ -3,7 +3,7 @@ export function localDateStr(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-// 'YYYY-MM-DD' → 'M/D'  (charts in Dashboard, Strength, Nutrition)
+// 'YYYY-MM-DD' → 'M/D'  (charts in Strength, Nutrition)
 export function formatDate(iso) {
   if (!iso) return '';
   const [, m, d] = iso.split('-');
