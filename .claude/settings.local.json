@@ -12,7 +12,8 @@
       "Bash(xargs basename:*)",
       "Bash(grep -r \"GET.*exercise\\\\|POST.*exercise\" c:/Users/Kavin/Documents/GitHub/WorkoutApp/backend/src --include=*.java)",
       "Bash(./gradlew test:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(npx vite:*)"
     ]
   }
 }
