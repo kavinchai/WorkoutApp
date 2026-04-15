@@ -31,7 +31,11 @@
       "Bash(ls c:/Users/Kavin/Documents/GitHub/WorkoutApp/backend/*.gradle*)",
       "Bash(node server.js)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(timeout 5 bash -c 'FITTRACK_API_TOKEN=test node server.js &:*)"
+      "Bash(timeout 5 bash -c 'FITTRACK_API_TOKEN=test node server.js &:*)",
+      "Bash(wc -l /Users/kavinchai/Documents/GitHub/WorkoutApp/backend/src/main/java/com/kavin/fitness/controller/*.java)",
+      "Bash(grep -n \"private User resolveUser\\\\|private.*resolveUser\" /Users/kavinchai/Documents/GitHub/WorkoutApp/backend/src/main/java/com/kavin/fitness/controller/*.java)",
+      "Bash(grep -n \"import.*css\\\\|import.*CSS\" /Users/kavinchai/Documents/GitHub/WorkoutApp/frontend/src/pages/*.jsx)",
+      "Bash(find /Users/kavinchai/Documents/GitHub/WorkoutApp/backend/src/main/java/com/kavin/fitness/service -name \"*.java\" -exec wc -l {} +)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Kavin"
