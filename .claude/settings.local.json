@@ -46,7 +46,11 @@
       "Bash(git commit -m ':*)",
       "Bash(git push:*)",
       "Bash(timeout 6 bash -c ':*)",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(mvn test:*)",
+      "Bash(ls /c/Users/Kavin/Documents/GitHub/WorkoutApp/backend/mvnw*)",
+      "Bash(ls /c/Users/Kavin/Documents/GitHub/WorkoutApp/backend/*.bat)",
+      "Bash(ls /c/Users/Kavin/Documents/GitHub/WorkoutApp/mvnw*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Kavin"
