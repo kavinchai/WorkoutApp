@@ -30,7 +30,7 @@ public class ProgressService {
     private ExerciseSetRepository exerciseSetRepository;
 
     public List<StrengthProgressDTO> getStrengthProgress(Long userId) {
-        List<String> allExercises = exerciseSetRepository.findDistinctExerciseNamesByUserId(userId);
+        List<String> allExercises = exerciseSetRepository.findDistinctLiftingExerciseNamesByUserId(userId);
 
         // Show key lifts first, then any others
         List<String> ordered = new ArrayList<>(KEY_LIFTS);

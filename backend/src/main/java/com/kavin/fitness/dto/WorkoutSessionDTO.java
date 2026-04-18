@@ -24,5 +24,7 @@ public class WorkoutSessionDTO {
         private Integer    reps;
         private BigDecimal weightLbs;
         private Boolean    completed;
+        private String     exerciseType;
+        private Integer    durationSeconds;
     }
 }

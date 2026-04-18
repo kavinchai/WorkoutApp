@@ -34,4 +34,10 @@ public class ExerciseSet {
 
     @Column(nullable = false)
     private Boolean completed = true;
+
+    @Column(name = "exercise_type", nullable = false, length = 10)
+    private String exerciseType = "lifting";
+
+    @Column(name = "duration_seconds")
+    private Integer durationSeconds;
 }

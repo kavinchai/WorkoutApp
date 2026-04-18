@@ -18,9 +18,15 @@ public class ExerciseRequest {
     @NotBlank
     private String exerciseName;
 
-    @NotNull
+    /** "lifting" (default) or "cardio" */
+    private String exerciseType = "lifting";
+
+    /** Required for lifting exercises. */
     @Valid
     private List<SetRequest> sets;
+
+    /** Required for cardio exercises — total duration in seconds. */
+    private Integer durationSeconds;
 
     @Getter @Setter @NoArgsConstructor
     public static class SetRequest {

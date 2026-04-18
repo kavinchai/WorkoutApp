@@ -9,7 +9,7 @@ import DayInfoModal        from '../components/DayInfoModal';
 import MealModal           from '../components/MealModal';
 import WorkoutBuilderModal from '../components/WorkoutBuilderModal';
 import EditExerciseModal   from '../components/EditExerciseModal';
-import { groupByExercise } from '../utils/workout';
+import { groupByExercise, formatDuration } from '../utils/workout';
 import './Today.css';
 
 const now = new Date();
@@ -39,28 +39,39 @@ function MealCard({ meal, index, onEdit }) {
 
 // ── Exercise cards ────────────────────────────────────────────────────────────
 
-function ExerciseCard({ name, weight, sets, onEdit }) {
+function ExerciseCard({ name, weight, sets, exerciseType, durationSeconds, onEdit }) {
+  const isCardio = exerciseType === 'cardio';
   return (
     <div className="exercise-card">
       <div className="exercise-card-header">
         <span className="exercise-card-name">
           {name}
-          <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: 8, fontSize: 'var(--font-size-sm)' }}>{weight} lbs</span>
+          {!isCardio && (
+            <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: 8, fontSize: 'var(--font-size-sm)' }}>{weight} lbs</span>
+          )}
         </span>
         <button className="btn btn-sm" onClick={onEdit}>[edit]</button>
       </div>
-      <div className="exercise-card-sets">
-        <div className="exercise-sets-head">
-          <span>Set</span><span>Weight</span><span>Reps</span>
+      {isCardio ? (
+        <div className="exercise-card-sets">
+          <span style={{ color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
+            {formatDuration(durationSeconds)}
+          </span>
         </div>
-        {sets.map(s => (
-          <div key={s.id} className="exercise-set-row">
-            <span>{s.setNumber}</span>
-            <span>{s.weightLbs} lbs</span>
-            <span>{s.reps}</span>
+      ) : (
+        <div className="exercise-card-sets">
+          <div className="exercise-sets-head">
+            <span>Set</span><span>Weight</span><span>Reps</span>
           </div>
-        ))}
-      </div>
+          {sets.map(s => (
+            <div key={s.id} className="exercise-set-row">
+              <span>{s.setNumber}</span>
+              <span>{s.weightLbs} lbs</span>
+              <span>{s.reps}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -190,10 +201,12 @@ export default function Today() {
               <div className="exercise-cards">
                 {exerciseGroups.map(g => (
                   <ExerciseCard
-                    key={`${g.name}-${g.weight}`}
+                    key={`${g.name}-${g.exerciseType === 'cardio' ? 'cardio' : g.weight}`}
                     name={g.name}
                     weight={g.weight}
                     sets={g.sets}
+                    exerciseType={g.exerciseType}
+                    durationSeconds={g.durationSeconds}
                     onEdit={() => setEditExercise({ sessionId: todayWorkoutEntry.id, name: g.name, sets: g.sets })}
                   />
                 ))}

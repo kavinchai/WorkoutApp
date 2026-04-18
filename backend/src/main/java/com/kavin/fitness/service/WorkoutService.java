@@ -83,14 +83,27 @@ public class WorkoutService {
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private void addSetsForExercise(WorkoutSession session, ExerciseRequest exerciseRequest) {
-        for (ExerciseRequest.SetRequest setRequest : exerciseRequest.getSets()) {
+        if ("cardio".equalsIgnoreCase(exerciseRequest.getExerciseType())) {
             ExerciseSet exerciseSet = new ExerciseSet();
             exerciseSet.setSession(session);
             exerciseSet.setExerciseName(exerciseRequest.getExerciseName());
-            exerciseSet.setSetNumber(setRequest.getSetNumber());
-            exerciseSet.setReps(setRequest.getReps());
-            exerciseSet.setWeightLbs(setRequest.getWeightLbs());
+            exerciseSet.setExerciseType("cardio");
+            exerciseSet.setSetNumber(1);
+            exerciseSet.setReps(0);
+            exerciseSet.setWeightLbs(java.math.BigDecimal.ZERO);
+            exerciseSet.setDurationSeconds(exerciseRequest.getDurationSeconds());
             session.getExerciseSets().add(exerciseSet);
+        } else {
+            for (ExerciseRequest.SetRequest setRequest : exerciseRequest.getSets()) {
+                ExerciseSet exerciseSet = new ExerciseSet();
+                exerciseSet.setSession(session);
+                exerciseSet.setExerciseName(exerciseRequest.getExerciseName());
+                exerciseSet.setExerciseType("lifting");
+                exerciseSet.setSetNumber(setRequest.getSetNumber());
+                exerciseSet.setReps(setRequest.getReps());
+                exerciseSet.setWeightLbs(setRequest.getWeightLbs());
+                session.getExerciseSets().add(exerciseSet);
+            }
         }
     }
 
@@ -104,7 +117,8 @@ public class WorkoutService {
         List<WorkoutSessionDTO.SetDTO> sets = session.getExerciseSets().stream()
                 .map(exerciseSet -> new WorkoutSessionDTO.SetDTO(
                         exerciseSet.getId(), exerciseSet.getExerciseName(), exerciseSet.getSetNumber(),
-                        exerciseSet.getReps(), exerciseSet.getWeightLbs(), exerciseSet.getCompleted()))
+                        exerciseSet.getReps(), exerciseSet.getWeightLbs(), exerciseSet.getCompleted(),
+                        exerciseSet.getExerciseType(), exerciseSet.getDurationSeconds()))
                 .collect(Collectors.toList());
         return new WorkoutSessionDTO(session.getId(), session.getSessionDate(), sets);
     }

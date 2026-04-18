@@ -18,9 +18,14 @@ public interface ExerciseSetRepository extends JpaRepository<ExerciseSet, Long> 
            "ORDER BY e.exerciseName ASC")
     List<String> findDistinctExerciseNamesByUserId(@Param("userId") Long userId);
 
+    @Query("SELECT DISTINCT e.exerciseName FROM ExerciseSet e " +
+           "JOIN e.session s WHERE s.user.id = :userId AND e.exerciseType = 'lifting' " +
+           "ORDER BY e.exerciseName ASC")
+    List<String> findDistinctLiftingExerciseNamesByUserId(@Param("userId") Long userId);
+
     @Query("SELECT e FROM ExerciseSet e " +
            "JOIN e.session s " +
-           "WHERE s.user.id = :userId AND e.exerciseName = :name " +
+           "WHERE s.user.id = :userId AND e.exerciseName = :name AND e.exerciseType = 'lifting' " +
            "ORDER BY s.sessionDate ASC, e.setNumber ASC")
     List<ExerciseSet> findByUserIdAndExerciseNameOrderByDate(
             @Param("userId") Long userId,

@@ -108,3 +108,43 @@
   background: var(--hover-bg);
   color: var(--hover-fg);
 }
+
+.wbm-type-toggle {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.wbm-type-toggle--active {
+  color: var(--fg);
+}
+
+.wbm-duration-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px 6px;
+}
+
+.wbm-duration-label {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.wbm-duration-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wbm-duration-input {
+  width: 52px;
+  text-align: center;
+}
+
+.wbm-duration-unit {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
