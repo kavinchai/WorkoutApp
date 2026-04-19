@@ -50,7 +50,13 @@
       "Bash(mvn test:*)",
       "Bash(ls /c/Users/Kavin/Documents/GitHub/WorkoutApp/backend/mvnw*)",
       "Bash(ls /c/Users/Kavin/Documents/GitHub/WorkoutApp/backend/*.bat)",
-      "Bash(ls /c/Users/Kavin/Documents/GitHub/WorkoutApp/mvnw*)"
+      "Bash(ls /c/Users/Kavin/Documents/GitHub/WorkoutApp/mvnw*)",
+      "Bash(java -version)",
+      "Bash(gradle wrapper:*)",
+      "Bash(brew install:*)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(/opt/homebrew/bin/gradle --version)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Kavin"
